@@ -29,10 +29,11 @@ class GPT3(Base):
     def rotate_key(self):
         self.headers["Authorization"] = f"Bearer {next(self.keys)}"
 
-    def translate(self, text):
+    def translate(self, text, prompt_template):
+        prompt_template = prompt_template or "Please help me to translate，`{text}` to {language}"
         print(text)
         self.rotate_key()
-        self.data["prompt"] = f"Please help me to translate，`{text}` to {self.language}"
+        self.data["prompt"] = prompt_template.format(text=text, language=self.language)
         r = self.session.post(self.api_url, headers=self.headers, json=self.data)
         if not r.ok:
             return text

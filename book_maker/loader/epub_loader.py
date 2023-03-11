@@ -21,6 +21,7 @@ class EPUBBookLoader(BaseBookLoader):
         resume,
         language,
         model_api_base=None,
+        prompt_template=None,
         is_test=False,
         test_num=5,
         translate_tags="p",
@@ -28,6 +29,7 @@ class EPUBBookLoader(BaseBookLoader):
         self.epub_name = epub_name
         self.new_epub = epub.EpubBook()
         self.translate_model = model(key, language, model_api_base)
+        self.prompt_template = prompt_template
         self.is_test = is_test
         self.test_num = test_num
         self.translate_tags = translate_tags
@@ -95,7 +97,7 @@ class EPUBBookLoader(BaseBookLoader):
                         if self.resume and index < p_to_save_len:
                             new_p.string = self.p_to_save[index]
                         else:
-                            new_p.string = self.translate_model.translate(p.text)
+                            new_p.string = self.translate_model.translate(p.text, self.prompt_template)
                             self.p_to_save.append(new_p.text)
                         p.insert_after(new_p)
                         index += 1

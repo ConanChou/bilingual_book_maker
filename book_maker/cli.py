@@ -6,6 +6,23 @@ from book_maker.loader import BOOK_LOADER_DICT
 from book_maker.translator import MODEL_DICT
 from book_maker.utils import LANGUAGES, TO_LANGUAGE_CODE
 
+def parse_prompt_arg(prompt_arg):
+    prompt = None
+    if prompt_arg is None:
+        return prompt
+    if not prompt_arg.endswith(".txt"):
+        prompt = prompt_arg
+    else:
+        if os.path.exists(prompt_arg):
+            with open(prompt_arg, "r") as f:
+                prompt = f.read()
+        else:
+            raise FileNotFoundError(f"{prompt_arg} not found")
+    if (prompt is None or 
+        not(all(c in prompt for c in ["{text}", "{language}"]))):
+        raise ValueError("prompt must contain `{text}` and `{language}`")
+    return prompt
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -51,6 +68,13 @@ def main():
         choices=["chatgptapi", "gpt3"],  # support DeepL later
         metavar="MODEL",
         help="model to use, available: {%(choices)s}",
+    )
+    parser.add_argument(
+        "--prompt",
+        dest="prompt_template",
+        type=str,
+        metavar="PROMPT_TEMPLATE",
+        help="used for customizing the prompt. It can be the prompt template string, or a path to the template file. The valid placeholders are `{text}` and `{language}`.",
     )
     parser.add_argument(
         "--language",
@@ -126,6 +150,7 @@ def main():
         options.resume,
         language=language,
         model_api_base=model_api_base,
+        prompt_template=parse_prompt_arg(options.prompt_template),
         is_test=options.test,
         test_num=options.test_num,
         translate_tags=options.translate_tags,
